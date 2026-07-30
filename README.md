@@ -6,7 +6,7 @@ A custom-built, headless-ready Shopify product card component based on the provi
 
 ## Links
 
-- **Live Prototype:** [https://domaine-technical-test-1.myshopify.com/collections/all]
+- **Live Prototype:** [https://domaine-technical-test-1.myshopify.com/collections/all] (Password: `gewfri`)
 - **Repository:** [https://github.com/oleksandrdatsko00-arch/shopify-product-card-assessment]
 
 ## Tech Stack
