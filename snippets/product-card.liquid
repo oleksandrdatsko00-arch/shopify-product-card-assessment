@@ -1,0 +1,131 @@
+<div class="product-card-wrapper flex flex-col w-[315px] cursor-pointer font-['Roboto',sans-serif]">
+  
+  <div class="relative w-[315px] h-[340px] bg-white border border-[#E8E8E8] rounded-[10px] overflow-hidden">
+    
+    {% assign current_variant = product.selected_or_first_available_variant %}
+    {% assign main_image = current_variant.image | default: product.featured_image %}
+    {% assign main_img_url = main_image | image_url: width: 600 %}
+    
+    {% assign hover_img_url = current_variant.metafields.custom.hover_image | image_url: width: 600 %}
+    {% if current_variant.metafields.custom.hover_image == blank %}
+      {% if current_variant.image %}
+        {% assign img_index = current_variant.image.position | minus: 1 %}
+        {% assign next_index = img_index | plus: 1 %}
+        {% assign hover_img_url = product.images[next_index] | image_url: width: 600 | default: main_img_url %}
+      {% else %}
+        {% assign hover_img_url = product.images[1] | image_url: width: 600 | default: main_img_url %}
+      {% endif %}
+    {% endif %}
+
+    <a href="{{ current_variant.url | default: product.url }}" class="block w-full h-full product-image-link relative group">
+      <img 
+        src="{{ main_img_url }}" 
+        alt="{{ main_image.alt | escape }}" 
+        width="275"
+        height="301"
+        class="main-image absolute top-[19.45px] left-[20px] w-[275px] h-[301px] object-cover transition-opacity duration-300 opacity-100 group-hover:opacity-0"
+      >
+      <img 
+        src="{{ hover_img_url }}" 
+        alt="{{ main_image.alt | escape }}" 
+        width="275"
+        height="301"
+        class="hover-image absolute top-[19.45px] left-[20px] w-[275px] h-[301px] object-contain transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+      >
+    </a>
+
+    {% if product.compare_at_price > product.price or product == blank %}
+      <div class="absolute top-[20px] left-[20px] flex items-center justify-center w-[90.91px] h-[29.45px] border border-[#FF0000] rounded-[25.6px] z-10 bg-white">
+        <span class="text-[#FF0000] text-[15.36px] leading-[18px] font-['Franklin_Gothic_ATF',sans-serif] text-center">
+          On Sale!
+        </span>
+      </div>
+    {% endif %}
+  </div>
+
+  {% for option in product.options_with_values %}
+    {% if option.name == 'Color' or option.name == 'Colour' %}
+      <div class="flex flex-wrap gap-[8px] mt-[15px]">
+        {% for value in option.values %}
+          
+          {% assign variant = product.variants | where: 'option1', value | first %}
+          
+          {% if variant %}
+            {% assign img_url = variant.image | image_url: width: 600 %}
+            {% assign loop_hover_img_url = variant.metafields.custom.hover_image | image_url: width: 600 %}
+            
+            {% if variant.metafields.custom.hover_image == blank %}
+              {% assign img_index = variant.image.position | minus: 1 %}
+              {% assign next_index = img_index | plus: 1 %}
+              {% assign loop_hover_img_url = product.images[next_index] | image_url: width: 600 | default: img_url %}
+            {% endif %}
+
+            <div class="flex items-center justify-center w-[24px] h-[24px]">
+              <button 
+                type="button" 
+                class="swatch-btn w-[20px] h-[20px] rounded-full focus:outline-none transition-all {% if variant.id == current_variant.id %}ring-1 ring-[#0A4874] ring-offset-[1px]{% endif %}"
+                style="background-color: {{ value | downcase | replace: ' ', '' }};"
+                data-main-img="{{ img_url }}"
+                data-hover-img="{{ loop_hover_img_url }}"
+                data-url="{{ variant.url }}"
+                aria-label="{{ value }}"
+              ></button>
+            </div>
+          {% endif %}
+
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  <div class="flex flex-col">
+    <span class="mt-[15px] font-normal text-[14px] leading-[16px] text-[#111111]">
+      {{ product.vendor | default: 'Good Brand Company' }}
+    </span>
+
+    <h3 class="mt-[6px] font-medium text-[16px] leading-[18px] text-[#0A4874]">
+      <a href="{{ current_variant.url | default: product.url }}" class="hover:underline product-title-link">
+        {{ product.title | default: 'Plain T-shirt' }}
+      </a>
+    </h3>
+
+    <div class="flex items-center mt-[6px]">
+      {% if product.compare_at_price > product.price or product == blank %}
+        <span class="font-normal text-[14px] leading-[16px] text-[#111111] line-through mr-[8px]">
+          {{ product.compare_at_price | money | default: '$29.50' }}
+        </span>
+        <span class="font-normal text-[14px] leading-[16px] text-[#FF0000]">
+          {{ product.price | money | default: '$20.00' }}
+        </span>
+      {% else %}
+        <span class="font-normal text-[14px] leading-[16px] text-[#111111]">
+          {{ product.price | money }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.product-card-wrapper').forEach(card => {
+    const swatches = card.querySelectorAll('.swatch-btn');
+    const mainImg = card.querySelector('.main-image');
+    const hoverImg = card.querySelector('.hover-image');
+    const titleLink = card.querySelector('.product-title-link');
+    const imgLink = card.querySelector('.product-image-link');
+
+    swatches.forEach(swatch => {
+      swatch.addEventListener('click', (e) => {
+        swatches.forEach(s => s.classList.remove('ring-1', 'ring-[#0A4874]', 'ring-offset-[1px]'));
+        
+        const btn = e.currentTarget;
+        btn.classList.add('ring-1', 'ring-[#0A4874]', 'ring-offset-[1px]');
+
+        if (mainImg && btn.dataset.mainImg) mainImg.src = btn.dataset.mainImg;
+        if (hoverImg && btn.dataset.hoverImg) hoverImg.src = btn.dataset.hoverImg;
+        if (titleLink && btn.dataset.url) titleLink.href = btn.dataset.url;
+        if (imgLink && btn.dataset.url) imgLink.href = btn.dataset.url;
+      });
+    });
+  });
+</script>
